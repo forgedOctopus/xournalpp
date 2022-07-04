@@ -87,6 +87,7 @@ auto CustomExportJob::showFilechooser() -> bool {
     exportRange = dlg.getRange();
     progressiveMode = dlg.progressiveMode();
     exportBackground = dlg.getBackgroundType();
+    cropToContent = dlg.getCropToContent();
 
     if (format == EXPORT_GRAPHICS_PNG) {
         pngQualityParameter = dlg.getPngQualityParameter();
@@ -132,6 +133,7 @@ void CustomExportJob::run() {
         std::unique_ptr<XojPdfExport> pdfe = XojPdfExportFactory::createExport(doc, control);
 
         pdfe->setExportBackground(exportBackground);
+        pdfe->setCropToContent(cropToContent);
 
         if (!pdfe->createPdf(this->filepath, exportRange, progressiveMode)) {
             this->errorMsg = pdfe->getLastError();

@@ -31,6 +31,11 @@ void XojCairoPdfExport::setExportBackground(ExportBackgroundType exportBackgroun
     this->exportBackground = exportBackground;
 }
 
+/**
+ * Crop export to the drawing content
+ */
+void XojCairoPdfExport::setCropToContent(bool cropToContent) { this->cropToContent = cropToContent; }
+
 auto XojCairoPdfExport::startPdf(const fs::path& file) -> bool {
     this->surface = cairo_pdf_surface_create(file.u8string().c_str(), 0, 0);
     this->cr = cairo_create(surface);

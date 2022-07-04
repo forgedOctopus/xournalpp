@@ -77,6 +77,11 @@ private:
      */
     bool progressiveMode = false;
 
+    /**
+     * Export pages cropped to the drawing content
+     */
+    bool cropToContent = false;
+
     std::string lastError;
 
     std::string chosenFilterName;

@@ -35,6 +35,11 @@ public:
      */
     void setExportBackground(ExportBackgroundType exportBackground) override;
 
+    /**
+     * Crop export to the drawing content
+     */
+    void setCropToContent(bool cropToContent) override;
+
 private:
     bool startPdf(const fs::path& file);
 #if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1, 16, 0)
@@ -63,6 +68,8 @@ private:
     cairo_t* cr = nullptr;
 
     ExportBackgroundType exportBackground = EXPORT_BACKGROUND_ALL;
+
+    bool cropToContent{false};
 
     std::string lastError;
 };

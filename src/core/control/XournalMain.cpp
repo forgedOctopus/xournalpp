@@ -296,6 +296,7 @@ struct XournalMainPrivate {
     int exportPngWidth = -1;
     int exportPngHeight = -1;
     gboolean exportNoBackground = false;
+    gboolean exportCropToContent = false;
     gboolean exportNoRuling = false;
     gboolean progressiveMode = false;
     std::unique_ptr<GladeSearchpath> gladePath;
@@ -606,6 +607,10 @@ auto XournalMain::run(int argc, char** argv) -> int {
             GOptionEntry{"export-no-ruling", 0, 0, G_OPTION_ARG_NONE, &app_data.exportNoRuling,
                          _("Export without ruling\n"
                            "                                 The exported file has no paper ruling\n"),
+                         0},
+            GOptionEntry{"export-crop-to-content", 0, 0, G_OPTION_ARG_NONE, &app_data.exportCropToContent,
+                         _("Crop export to drawing contents\n"
+                           "                                 The exported file is cropped to the drawing contents.\n"),
                          0},
             GOptionEntry{"export-layers-progressively", 0, 0, G_OPTION_ARG_NONE, &app_data.progressiveMode,
                          _("Export layers progressively\n"

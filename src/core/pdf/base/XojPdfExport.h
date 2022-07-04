@@ -33,5 +33,10 @@ public:
      */
     virtual void setExportBackground(ExportBackgroundType exportBackground);
 
+    /**
+     * Crop export to the drawing content
+     */
+    virtual void setCropToContent(bool cropToContent);
+
 private:
 };
