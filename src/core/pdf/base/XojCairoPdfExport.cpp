@@ -111,6 +111,20 @@ void XojCairoPdfExport::exportPage(size_t page) {
 
     cairo_save(this->cr);
 
+    // Crop surface if option "Crop to Contents" was selected in the export settings
+    cairo_t* cr_cropped{cr};
+    cairo_surface_t* surface_cropped{surface};
+    std::vector<Element*> elements{p->getSelectedLayer()->getElements()};
+    Range elements_range{calcElementRange(elements)};
+    if (cropToContent && !elements.empty()) {
+        // Crop the surface
+        cairo_pdf_surface_set_size(surface, elements_range.getWidth(), elements_range.getHeight());
+
+        // Swap in a temporary full surface (content later copied to cropped surface)
+        surface = cairo_pdf_surface_create(nullptr, p->getWidth(), p->getHeight());
+        cr = cairo_create(surface);
+    }
+
     // For a better pdf quality, we use a dedicated pdf rendering
     if (p->getBackgroundType().isPdfPage() && (exportBackground != EXPORT_BACKGROUND_NONE)) {
         auto pgNo = p->getPdfPageNr();
@@ -121,6 +135,25 @@ void XojCairoPdfExport::exportPage(size_t page) {
 
     view.drawPage(p, this->cr, true /* dont render eraseable */, true /* don't rerender the pdf background */,
                   exportBackground == EXPORT_BACKGROUND_NONE, exportBackground <= EXPORT_BACKGROUND_UNRULED);
+
+    if (cropToContent && !elements.empty()) {
+        // Copy contents from full to cropped surface
+        cairo_set_source_surface(cr_cropped, surface, -elements_range.getX(), -elements_range.getY());
+        cairo_rectangle(cr_cropped, 0, 0, elements_range.getWidth(), elements_range.getHeight());
+        cairo_fill(cr_cropped);
+
+        // Avoid blurry output
+        cairo_set_source_rgb(cr_cropped, 0, 0, 0);
+        cairo_stroke(cr_cropped);
+
+        // Destroy full surface
+        cairo_destroy(cr);
+        cairo_surface_destroy(surface);
+
+        // Swap in original CR
+        cr = cr_cropped;
+        surface = surface_cropped;
+    }
 
     // next page
     cairo_show_page(this->cr);
