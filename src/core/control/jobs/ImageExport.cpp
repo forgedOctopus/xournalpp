@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <cairo-svg.h>
+#include <cairo.h>
 
 #include "model/Document.h"
 #include "util/Util.h"
@@ -138,7 +139,24 @@ void ImageExport::exportImagePage(size_t pageId, size_t id, double zoomRatio, Ex
     PageRef page = doc->getPage(pageId);
     doc->unlock();
 
-    zoomRatio = createSurface(page->getWidth(), page->getHeight(), id, zoomRatio);
+    // Crop surface if option "Crop to Contents" was selected in the export settings
+    cairo_t* cr_cropped{cr};
+    cairo_surface_t* surface_cropped{surface};
+    std::vector<Element*> elements{page->getSelectedLayer()->getElements()};
+    Range elements_range{Util::calcRangeFromElements(elements)};
+    if (cropToContent && !elements.empty()) {
+        // Crop the surface
+        zoomRatio = createSurface(elements_range.getWidth(), elements_range.getHeight(), id, zoomRatio);
+
+        cr_cropped = cr;
+        surface_cropped = surface;
+
+        // Swap in a temporary full surface (content later copied to cropped surface)
+        // TODO: consider SVG: (needs filename)
+        zoomRatio = createSurface(page->getWidth(), page->getHeight(), id, zoomRatio);
+    } else {
+        zoomRatio = createSurface(page->getWidth(), page->getHeight(), id, zoomRatio);
+    }
 
     cairo_status_t state = cairo_surface_status(this->surface);
     if (state != CAIRO_STATUS_SUCCESS) {
@@ -160,6 +178,26 @@ void ImageExport::exportImagePage(size_t pageId, size_t id, double zoomRatio, Ex
 
     view.drawPage(page, this->cr, true /* dont render eraseable */, true /* don't rerender the pdf background */,
                   exportBackground == EXPORT_BACKGROUND_NONE, exportBackground <= EXPORT_BACKGROUND_UNRULED);
+
+
+    if (cropToContent && !elements.empty()) {
+        // Copy contents from full to cropped surface
+        cairo_set_source_surface(cr_cropped, surface, -elements_range.getX(), -elements_range.getY());
+        cairo_rectangle(cr_cropped, 0, 0, elements_range.getWidth(), elements_range.getHeight());
+        cairo_fill(cr_cropped);
+
+        // Avoid blurry output
+        cairo_set_source_rgb(cr_cropped, 0, 0, 0);
+        cairo_stroke(cr_cropped);
+
+        // Destroy full surface
+        cairo_destroy(cr);
+        cairo_surface_destroy(surface);
+
+        // Swap in original CR
+        cr = cr_cropped;
+        surface = surface_cropped;
+    }
 
     if (!freeSurface(id)) {
         // could not create this file...

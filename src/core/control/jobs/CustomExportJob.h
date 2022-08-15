@@ -82,6 +82,8 @@ private:
      */
     bool cropToContent = false;
 
+    Range contentRange = Range(0, 0);
+
     std::string lastError;
 
     std::string chosenFilterName;

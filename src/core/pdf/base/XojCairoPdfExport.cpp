@@ -1,13 +1,17 @@
 #include "XojCairoPdfExport.h"
 
+#include <cstddef>
 #include <map>
 #include <sstream>
 #include <stack>
+#include <utility>
 #include <vector>
 
 #include <cairo-pdf.h>
+#include <cairo.h>
 #include <config.h>
 
+#include "control/tools/EditSelection.h"
 #include "util/Util.h"
 #include "util/i18n.h"
 #include "util/serdesstream.h"
@@ -120,7 +124,7 @@ void XojCairoPdfExport::exportPage(size_t page) {
     cairo_t* cr_cropped{cr};
     cairo_surface_t* surface_cropped{surface};
     std::vector<Element*> elements{p->getSelectedLayer()->getElements()};
-    Range elements_range{calcElementRange(elements)};
+    Range elements_range = Util::calcRangeFromElements(elements);
     if (cropToContent && !elements.empty()) {
         // Crop the surface
         cairo_pdf_surface_set_size(surface, elements_range.getWidth(), elements_range.getHeight());

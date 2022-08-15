@@ -158,6 +158,11 @@ public:
     ExportBackgroundType exportBackground = EXPORT_BACKGROUND_ALL;
 
     /**
+     * Crop export to the drawing content
+     */
+    bool cropToContent{false};
+
+    /**
      * The range to export
      */
     const PageRangeVector& exportRange;

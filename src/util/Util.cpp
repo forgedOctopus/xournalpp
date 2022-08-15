@@ -5,10 +5,12 @@
 
 #include <unistd.h>
 
+#include "../core/model/Element.h"
 #include "util/Color.h"
 #include "util/PathUtil.h"
 #include "util/XojMsgBox.h"
 #include "util/i18n.h"
+
 
 struct CallbackUiData {
     explicit CallbackUiData(std::function<void()> callback): callback(std::move(callback)) {}
@@ -74,4 +76,24 @@ void Util::systemWithMessage(const char* command) {
         std::string msg = FS(_F("Error {1} executing system command: {2}") % errc % command);
         XojMsgBox::showErrorToUser(nullptr, msg);
     }
+}
+
+auto Util::calcRangeFromElements(std::vector<Element*> elements) -> Range {
+    if (elements.empty())
+        return Range{0, 0};
+
+    Element* first = elements.front();
+    Range range(first->getX(), first->getY());
+
+    for (Element* e: elements) {
+        range.addPoint(e->getX(), e->getY());
+        range.addPoint(e->getX() + e->getElementWidth(), e->getY() + e->getElementHeight());
+    }
+
+    // Add padding:
+    int padding{1};
+    range.addPoint(range.getX() - padding, range.getY() - padding);
+    range.addPoint(range.getX2() + padding, range.getY2() + padding);
+
+    return range;
 }

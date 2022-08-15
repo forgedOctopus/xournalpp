@@ -19,6 +19,7 @@
 #include <gtk/gtk.h>
 
 #include "util/OutputStream.h"
+#include "util/Range.h"
 
 #include "filesystem.h"
 
@@ -49,6 +50,8 @@ extern void writeCoordinateString(OutputStream* out, double xVal, double yVal);
 constexpr const gchar* PRECISION_FORMAT_STRING = "%.8f";
 
 constexpr const auto DPI_NORMALIZATION_FACTOR = 72.0;
+
+Range calcRangeFromElements(std::vector<Element*> elements);
 
 }  // namespace Util
 
